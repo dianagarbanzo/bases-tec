@@ -38,7 +38,39 @@ def get_nodes_credits(graph, root):
                     nodes_credits[node] = shortest_paths
                 
     return nodes_credits
-                    
+
+
+def is_leaf(node, successors):
+    is_leaf = node not in successors
+    return is_leaf
+
+
+def get_credits(levels, labels, successors, predecessors):
+    nodes_credit = {}
+    edges_credit = {}
+    levels_from_buttom = reversed(list(levels.keys()))
+
+    for level in levels_from_buttom:
+        nodes = levels[level]
+        for node in nodes:
+            if(is_leaf(node, successors)): 
+                nodes_credit[node] = 1
+                parents = predecessors[node]
+                sum_parent_labels = 0 
+
+                for parent in parents:
+                    sum_parent_labels += labels[parent] 
+
+                for parent in parents:
+                    edges_credit[(parent,node)] = nodes_credit[node]*labels[parent]/sum_parent_labels
+
+            else:
+                credit = 1
+                childs = successors[node]
+                for child in childs:
+                    credit += edges_credit[(node,child)] 
+    return nodes_credit, edges_credit               
+
 G = nx.Graph([
     (1,2),
     (1,3),
@@ -66,21 +98,6 @@ G1 = nx.Graph([
     ('F','E'),
 ])
 
+levels = get_levels(G1,'E')
 
-print(get_nodes_credits(G1,'E'))
 
-#levels = get_levels(G1,'E')
-#print(levels)
-
-# credits = get_nodes_credits(G,1)
-# print(credits)
-#print(dict(nx.bfs_predecessors(G, source=2)))
-print(dict(nx.bfs_successors(G1, source='E')))
-
-#c = nx.edge_betweenness_centrality(G)
-#print (c)
-
-#print(G.nodes)
-#print(G.edges)
-#nx.draw(G1)
-#plt.show()
