@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 def get_levels(graph, root):
     levels = {}
     level = 0
-    current_level_nodes = [root] 
-    successors_by_node = dict(nx.bfs_successors(graph,root))
+    current_level_nodes = [root]
+    successors_by_node = dict(nx.bfs_successors(graph, root)) 
 
     while current_level_nodes:
         next_level_nodes = []
@@ -21,29 +21,61 @@ def get_levels(graph, root):
    
     return levels
 
-def get_nodes_credits(graph, root):
-    levels = get_levels(graph,root)
+def get_predecessors(graph, levels):
+    predecessors = {}
+
+    for level, nodes in levels.items():
+        for node in nodes:
+            neighbors_of_node = graph.neighbors(node)
+            predecessors_of_node = []
+            for neighbor in neighbors_of_node:
+                if(level > 0):
+                    upper_level_nodes = levels[level - 1]
+                    if(neighbor in upper_level_nodes):
+                        predecessors_of_node.append(neighbor)
+            if(predecessors_of_node):            
+                predecessors[node] = predecessors_of_node
+                
+    return predecessors
+
+def get_successors(graph, levels):
+    successors = {}
+
+    for level, nodes in levels.items():
+        for node in nodes:
+            neighbors_of_node = graph.neighbors(node)
+            successors_of_node = []
+            for neighbor in neighbors_of_node:
+                down_level_nodes = levels.get(level + 1,[])
+                if(neighbor in down_level_nodes):
+                    successors_of_node.append(neighbor)
+            if(successors_of_node):            
+                successors[node] = successors_of_node
+                
+    return successors
+
+def get_nodes_label(graph, root, levels, predecessors):
     nodes_credits = {root:1}
 
-    for key, values in levels.items():
+    for values in levels.values():
         for node in values:
-            shortest_paths = 0
-            neighbors_of_node = graph.neighbors(node)
-            for neighbor in neighbors_of_node:
-                if(key > 0):
-                    lista = levels[key-1]
-                    if(neighbor in lista):
-                        print (nodes_credits)
-                        shortest_paths += nodes_credits[neighbor]
-                    nodes_credits[node] = shortest_paths
-                
-    return nodes_credits
+            if(node != root):
+                shortest_paths = 0
+                for pre in predecessors[node]:
+                    shortest_paths += nodes_credits[pre]
+                nodes_credits[node] = shortest_paths    
 
+    return nodes_credits
 
 def is_leaf(node, successors):
     is_leaf = node not in successors
     return is_leaf
 
+def get_parents_labels_sum(parents, labels):
+    sum_parents_labels = 0 
+    for parent in parents:
+        sum_parents_labels += labels[parent] 
+    return sum_parents_labels
 
 def get_credits(levels, labels, successors, predecessors):
     nodes_credit = {}
@@ -53,37 +85,47 @@ def get_credits(levels, labels, successors, predecessors):
     for level in levels_from_buttom:
         nodes = levels[level]
         for node in nodes:
-            if(is_leaf(node, successors)): 
+            if(is_leaf(node, successors)):
                 nodes_credit[node] = 1
-                parents = predecessors[node]
-                sum_parent_labels = 0 
+                parents = predecessors.get(node,[])
+                sum_parents_labels = 0
+                sum_parents_labels = get_parents_labels_sum(parents, labels) 
 
                 for parent in parents:
-                    sum_parent_labels += labels[parent] 
-
-                for parent in parents:
-                    edges_credit[(parent,node)] = nodes_credit[node]*labels[parent]/sum_parent_labels
+                    edge = tuple(sorted((parent,node)))
+                    edges_credit[edge] = nodes_credit[node]*labels[parent]/sum_parents_labels
 
             else:
                 credit = 1
-                childs = successors[node]
+                childs = successors.get(node,[])
                 for child in childs:
-                    credit += edges_credit[(node,child)] 
+                    edge = tuple(sorted((node,child)))
+                    credit += edges_credit[edge] 
+                nodes_credit[node] = credit
+
+                parents = predecessors.get(node,[])
+                sum_parents_labels = 0
+                sum_parents_labels = get_parents_labels_sum(parents, labels) 
+
+                for parent in parents:
+                    edge = tuple(sorted((parent,node)))
+                    edges_credit[edge] = nodes_credit[node]*labels[parent]/sum_parents_labels
+
     return nodes_credit, edges_credit               
 
 G = nx.Graph([
-    (1,2),
-    (1,3),
-    (2,3),
-    (2,4),
-    (3,5),
-    (4,6),
-    (4,7),
-    (5,8),
-    (5,9),
-    (7,8),
-    (6,7),
-    (8,9)
+    ('A','B'),
+    ('A','C'),
+    ('B','C'),
+    ('B','H'),
+    ('C','D'),
+    ('H','I'),
+    ('H','G'),
+    ('D','E'),
+    ('D','F'),
+    ('G','E'),
+    ('I','G'),
+    ('E','F')
 ])
 
 G1 = nx.Graph([
@@ -94,10 +136,28 @@ G1 = nx.Graph([
     ('D','E'),
     ('D','F'),
     ('D','G'),
-    ('G','F'),
-    ('F','E'),
+    ('F','G'),
+    ('F','E')
 ])
 
-levels = get_levels(G1,'E')
+graph = G
+root = 'B'
 
+betweeness = {}
 
+for root in G.nodes:
+    levels = get_levels(graph, root)
+    predecessors_by_node = get_predecessors(graph, levels)
+    successors_by_node = get_successors(graph, levels)
+    labels_by_node = get_nodes_label(graph, root, levels, predecessors_by_node)
+    nodes_credit, edges_credit = get_credits(levels, labels_by_node, successors_by_node, predecessors_by_node)
+
+    for edge, credit in edges_credit.items():
+        if edge in betweeness:
+            betweeness[edge] += credit
+        else:
+            betweeness[edge] = credit
+
+for edge, bet in betweeness.items():
+    betweeness[edge] = betweeness[edge]/2    
+print(betweeness)
