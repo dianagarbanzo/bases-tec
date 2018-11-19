@@ -38,11 +38,10 @@ def get_predecessors(graph, levels):
                 
     return predecessors
 
-def get_nodes_credits(graph, root):
+def get_nodes_label(graph, root):
     levels = get_levels(graph,root)
     predecessors = get_predecessors(graph, levels)
     nodes_credits = {root:1}
-    print("Predecessors: ", predecessors)
 
     for values in levels.values():
         for node in values:
@@ -52,7 +51,6 @@ def get_nodes_credits(graph, root):
                     shortest_paths += nodes_credits[pre]
                 nodes_credits[node] = shortest_paths    
 
-    print(nodes_credits)
     return nodes_credits
                     
 G = nx.Graph([
@@ -83,7 +81,7 @@ G1 = nx.Graph([
 ])
 
 
-print(get_nodes_credits(G1,'E'))
+print(get_nodes_label(G1,'E'))
 
 #levels = get_levels(G1,'E')
 #print(levels)
