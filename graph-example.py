@@ -21,22 +21,38 @@ def get_levels(graph, root):
    
     return levels
 
+def get_predecessors(graph, levels):
+    predecessors = {}
+
+    for level, nodes in levels.items():
+        for node in nodes:
+            neighbors_of_node = graph.neighbors(node)
+            predecessors_of_node = []
+            for neighbor in neighbors_of_node:
+                if(level > 0):
+                    upper_level_nodes = levels[level - 1]
+                    if(neighbor in upper_level_nodes):
+                        predecessors_of_node.append(neighbor)
+                        
+            predecessors[node] = predecessors_of_node
+                
+    return predecessors
+
 def get_nodes_credits(graph, root):
     levels = get_levels(graph,root)
+    predecessors = get_predecessors(graph, levels)
     nodes_credits = {root:1}
+    print("Predecessors: ", predecessors)
 
-    for key, values in levels.items():
+    for values in levels.values():
         for node in values:
-            shortest_paths = 0
-            neighbors_of_node = graph.neighbors(node)
-            for neighbor in neighbors_of_node:
-                if(key > 0):
-                    lista = levels[key-1]
-                    if(neighbor in lista):
-                        print (nodes_credits)
-                        shortest_paths += nodes_credits[neighbor]
-                    nodes_credits[node] = shortest_paths
-                
+            if(node != root):
+                shortest_paths = 0
+                for pre in predecessors[node]:
+                    shortest_paths += nodes_credits[pre]
+                nodes_credits[node] = shortest_paths    
+
+    print(nodes_credits)
     return nodes_credits
                     
 G = nx.Graph([
