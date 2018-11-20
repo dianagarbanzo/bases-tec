@@ -1,4 +1,5 @@
 import networkx as nx
+from networkx.algorithms import community
 import matplotlib.pyplot as plt 
 
 
@@ -140,12 +141,12 @@ G1 = nx.Graph([
     ('F','E')
 ])
 
-graph = G
+graph = G1
 root = 'B'
 
 betweeness = {}
 
-for root in G.nodes:
+for root in graph.nodes:
     levels = get_levels(graph, root)
     predecessors_by_node = get_predecessors(graph, levels)
     successors_by_node = get_successors(graph, levels)
@@ -160,4 +161,10 @@ for root in G.nodes:
 
 for edge, bet in betweeness.items():
     betweeness[edge] = betweeness[edge]/2    
-print(betweeness)
+
+
+communities_generator = community.girvan_newman(G)
+top_level_communities = next(communities_generator)
+next_level_communities = next(communities_generator)
+print(sorted(map(sorted, top_level_communities)))
+print(sorted(map(sorted, next_level_communities)))
