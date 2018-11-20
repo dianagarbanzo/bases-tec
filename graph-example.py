@@ -1,7 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt 
 
-
 def get_levels(graph, root):
     levels = {}
     level = 0
@@ -111,7 +110,16 @@ def get_credits(levels, labels, successors, predecessors):
                     edge = tuple(sorted((parent,node)))
                     edges_credit[edge] = nodes_credit[node]*labels[parent]/sum_parents_labels
 
-    return nodes_credit, edges_credit               
+    return nodes_credit, edges_credit
+
+def find_keys_of_element(dictionary,search_element):
+    result = []
+    for edge, betweeness in dictionary.items():   
+        if betweeness == search_element:
+            print(edge)
+            result.append(edge)
+
+    return result
 
 G = nx.Graph([
     ('A','B'),
@@ -161,3 +169,18 @@ for root in G.nodes:
 for edge, bet in betweeness.items():
     betweeness[edge] = betweeness[edge]/2    
 print(betweeness)
+
+def find_communities(graph, betweeness):
+    list_of_betweennesses = list(betweeness.values())
+    list_of_unique_betweennesses = list(set(list_of_betweennesses))
+    list_of_unique_betweennesses.sort(reverse=True)
+
+    for element in list_of_unique_betweennesses:
+        element_keys = find_keys_of_element(betweeness, element)
+        for edge in element_keys:
+            graph.remove_edge(edge[0],edge[1])
+
+        nx.draw(graph)
+        plt.show()
+
+find_communities(G, betweeness)
