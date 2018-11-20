@@ -2,7 +2,6 @@ import networkx as nx
 from networkx.algorithms import community
 import matplotlib.pyplot as plt 
 
-
 def get_levels(graph, root):
     levels = {}
     level = 0
@@ -112,7 +111,14 @@ def get_credits(levels, labels, successors, predecessors):
                     edge = tuple(sorted((parent,node)))
                     edges_credit[edge] = nodes_credit[node]*labels[parent]/sum_parents_labels
 
-    return nodes_credit, edges_credit               
+    return nodes_credit, edges_credit
+
+def find_keys_of_element(dictionary, search_element):
+    result = []
+    for key, value in dictionary.items():   
+        if value == search_element:
+            result.append(key)
+    return result
 
 G = nx.Graph([
     ('A','B'),
@@ -141,30 +147,61 @@ G1 = nx.Graph([
     ('F','E')
 ])
 
-graph = G1
-root = 'B'
 
-betweeness = {}
+def calculate_betweeness(graph):
+    betweeness = {}
 
-for root in graph.nodes:
-    levels = get_levels(graph, root)
-    predecessors_by_node = get_predecessors(graph, levels)
-    successors_by_node = get_successors(graph, levels)
-    labels_by_node = get_nodes_label(graph, root, levels, predecessors_by_node)
-    nodes_credit, edges_credit = get_credits(levels, labels_by_node, successors_by_node, predecessors_by_node)
+    for root in graph.nodes:
+        levels = get_levels(graph, root)
+        predecessors_by_node = get_predecessors(graph, levels)
+        successors_by_node = get_successors(graph, levels)
+        labels_by_node = get_nodes_label(graph, root, levels, predecessors_by_node)
+        edges_credit = get_credits(levels, labels_by_node, successors_by_node, predecessors_by_node)[1]
 
-    for edge, credit in edges_credit.items():
-        if edge in betweeness:
-            betweeness[edge] += credit
-        else:
-            betweeness[edge] = credit
+        for edge, credit in edges_credit.items():
+            if edge in betweeness:
+                betweeness[edge] += credit
+            else:
+                betweeness[edge] = credit
 
-for edge, bet in betweeness.items():
-    betweeness[edge] = betweeness[edge]/2    
+    for edge in betweeness.keys():
+        betweeness[edge] = betweeness[edge]/2    
 
+    return betweeness
 
-communities_generator = community.girvan_newman(G)
-top_level_communities = next(communities_generator)
-next_level_communities = next(communities_generator)
-print(sorted(map(sorted, top_level_communities)))
-print(sorted(map(sorted, next_level_communities)))
+def find_communities(graph, betweeness):
+    list_of_betweennesses = list(betweeness.values())
+    list_of_unique_betweennesses = list(set(list_of_betweennesses))
+    list_of_unique_betweennesses.sort(reverse=True)
+    current_number_of_communities = 1 
+
+    for element in list_of_unique_betweennesses:
+        
+        element_keys = find_keys_of_element(betweeness, element)
+
+        for edge in element_keys:
+
+            graph.remove_edge(edge[0],edge[1])
+            connected_components = list(sorted(nx.connected_components(graph), key = len, reverse=True))
+            new_number_of_communities = len(connected_components)
+
+            if (new_number_of_communities > current_number_of_communities):
+                current_number_of_communities = new_number_of_communities
+                yield connected_components
+           
+
+graph = G
+betweeness = calculate_betweeness(graph)
+print(betweeness)
+c = find_communities(graph, betweeness)
+print(next(c))
+print(next(c))
+print(next(c))
+
+# communities_generator = community.girvan_newman(G)
+# top_level_communities = next(communities_generator)
+# next_level_communities = next(communities_generator)
+# next2= next(communities_generator)
+# print(sorted(map(sorted, top_level_communities)))
+# print(sorted(map(sorted, next_level_communities)))
+# print(sorted(map(sorted, next2)))
