@@ -1,6 +1,8 @@
 import networkx as nx
 from networkx.algorithms import community
+from networkx.readwrite import json_graph
 import matplotlib.pyplot as plt 
+import json 
 
 def get_levels(graph, root):
     levels = {}
@@ -120,33 +122,17 @@ def find_keys_of_element(dictionary, search_element):
             result.append(key)
     return result
 
-G = nx.Graph([
-    ('A','B'),
-    ('A','C'),
-    ('B','C'),
-    ('B','H'),
-    ('C','D'),
-    ('H','I'),
-    ('H','G'),
-    ('D','E'),
-    ('D','F'),
-    ('G','E'),
-    ('I','G'),
-    ('E','F')
-])
+def display_graph(graph):
+    nx.draw(graph)
+    plt.show()
 
-G1 = nx.Graph([
-    ('A','B'),
-    ('B','C'),
-    ('A','C'),
-    ('B','D'),
-    ('D','E'),
-    ('D','F'),
-    ('D','G'),
-    ('F','G'),
-    ('F','E')
-])
-
+def display_pretty_graph(graph, partitions):
+    nx.draw(graph, 
+                nodelist= partitions.keys(),
+                with_labels=True, 
+                node_color=list(partitions.values()), 
+                cmap=plt.get_cmap('rainbow'))
+    plt.show()
 
 def calculate_betweeness(graph):
     betweeness = {}
@@ -186,17 +172,86 @@ def find_communities(graph, betweeness):
             new_number_of_communities = len(connected_components)
 
             if (new_number_of_communities > current_number_of_communities):
-                current_number_of_communities = new_number_of_communities
-                yield connected_components
+                current_number_of_communities = new_number_of_communities    	        
+                yield connected_components, graph
            
+def NxToMongoJSON(graph):
+    db_records = []
 
-graph = G
-betweeness = calculate_betweeness(graph)
-print(betweeness)
-c = find_communities(graph, betweeness)
-print(next(c))
-print(next(c))
-print(next(c))
+    for node in graph.nodes:
+        person = {'id':node}
+        friends = [f for f in graph.neighbors(node)]
+        person['friends'] = friends
+        db_records.append(person)
+
+    return json.dumps(db_records)
+
+def get_partitions_by_node(communities):
+    partitions_by_node = {}
+    for c_i in range(len(communities)):
+        for node in communities[c_i]:
+            partitions_by_node[node] = c_i
+    return partitions_by_node
+
+G = nx.Graph([
+    ('A','B'),
+    ('A','C'),
+    ('B','C'),
+    ('B','H'),
+    ('C','D'),
+    ('H','I'),
+    ('H','G'),
+    ('D','E'),
+    ('D','F'),
+    ('G','E'),
+    ('I','G'),
+    ('E','F')
+])
+
+G1 = nx.Graph([
+    ('A','B'),
+    ('B','C'),
+    ('A','C'),
+    ('B','D'),
+    ('D','E'),
+    ('D','F'),
+    ('D','G'),
+    ('F','G'),
+    ('F','E')
+])
+
+G2 =  nx.random_geometric_graph(2000, 0.125)
+
+graph = G2
+#display_graph(graph)
+#betweeness = calculate_betweeness(graph)
+#c = find_communities(graph, betweeness)
+c = community.girvan_newman(G)
+try:
+    for i in range(10):
+        #communities, new_graph = next(c)
+        next(c)
+        #formated_communities = sorted(map(sorted, communities))
+        #partitions = get_partitions_by_node(formated_communities)
+        input("Press enter to continue")
+        #display_pretty_graph(new_graph, partitions)
+except StopIteration:
+    pass
+finally:
+    del c
+
+
+#communities, new_graph = next(c)
+#partitions = get_partitions_by_node(sorted(map(sorted, communities)))
+
+#display_pretty_graph(graph)
+#print(nx.node_link_data(graph))
+#data1 = json_graph.node_link_data(graph)
+#print(json.dumps(data1))
+
+
+
+    #display_pretty_graph(new_graph)
 
 # communities_generator = community.girvan_newman(G)
 # top_level_communities = next(communities_generator)
