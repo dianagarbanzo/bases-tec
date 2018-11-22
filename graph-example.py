@@ -220,21 +220,21 @@ G1 = nx.Graph([
     ('F','E')
 ])
 
-G2 =  nx.random_geometric_graph(2000, 0.125)
+G2 =  nx.random_geometric_graph(1000, 0.125)
 
 graph = G2
 #display_graph(graph)
-#betweeness = calculate_betweeness(graph)
-#c = find_communities(graph, betweeness)
-c = community.girvan_newman(G)
+betweeness = calculate_betweeness(graph)
+c = find_communities(graph, betweeness)
+# c = community.girvan_newman(G)
 try:
     for i in range(10):
-        #communities, new_graph = next(c)
+        communities, new_graph = next(c)
         next(c)
-        #formated_communities = sorted(map(sorted, communities))
-        #partitions = get_partitions_by_node(formated_communities)
-        input("Press enter to continue")
-        #display_pretty_graph(new_graph, partitions)
+        formated_communities = sorted(map(sorted, communities))
+        partitions = get_partitions_by_node(formated_communities)
+        # input("Press enter to continue")
+        display_pretty_graph(new_graph, partitions)
 except StopIteration:
     pass
 finally:
