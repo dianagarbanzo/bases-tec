@@ -219,34 +219,25 @@ G1 = nx.Graph([
     ('F','E')
 ])
 
-G2 = nx.random_geometric_graph(1000, 0.125)
-# G3 = nx.fast_gnp_random_graph(20, 0.5)
-# graph = G
+G2 =  nx.random_geometric_graph(1000, 0.125)
+
+graph = G2
 #display_graph(graph)
-# betweeness = calculate_betweeness(graph)
-# c = find_communities(graph, betweeness)
-# c2 = community.girvan_newman(graph)
-# try:
-#     for i in range(10):
-#         communities, new_graph = next(c)
-#         n2 = next(c2)
-#         print("-----------------------------------")
-#         print(sorted(map(sorted, communities)))
-#         print("-----------------------------------")
-#         print(sorted(map(sorted, n2)))
-#         print("-----------------------------------")
-#         formated_communities = sorted(map(sorted, communities))
-#         partitions = get_partitions_by_node(formated_communities)        
-#         display_pretty_graph(new_graph, partitions)
-# except StopIteration:
-#     pass
-# finally:
-#     del c
-
-
-
-NxToMongoJSON(G2, "1000-graph.json")
-
+betweeness = calculate_betweeness(graph)
+c = find_communities(graph, betweeness)
+# c = community.girvan_newman(G)
+try:
+    for i in range(10):
+        communities, new_graph = next(c)
+        next(c)
+        formated_communities = sorted(map(sorted, communities))
+        partitions = get_partitions_by_node(formated_communities)
+        # input("Press enter to continue")
+        display_pretty_graph(new_graph, partitions)
+except StopIteration:
+    pass
+finally:
+    del c
 
 
 #communities, new_graph = next(c)

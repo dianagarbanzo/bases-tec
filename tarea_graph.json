@@ -1,0 +1,7 @@
+{"id": "A", "friends": ["B", "C"]}
+{"id": "B", "friends": ["A", "C", "D"]}
+{"id": "C", "friends": ["B", "A"]}
+{"id": "D", "friends": ["B", "E", "F", "G"]}
+{"id": "E", "friends": ["D", "F"]}
+{"id": "F", "friends": ["D", "G", "E"]}
+{"id": "G", "friends": ["D", "F"]}
