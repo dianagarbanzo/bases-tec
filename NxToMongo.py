@@ -1,6 +1,5 @@
 from pymongo import MongoClient
 import networkx as nx
-import matplotlib.pyplot as plt 
 
 def GetMongoDBClient(client_url):
     client = MongoClient(client_url)
@@ -29,10 +28,13 @@ def ParseFromJsonToGraph(json_structure, id_name, connected_nodes_property_name)
 
     return resultant_graph
 
-db_client = GetMongoDBClient('mongodb://localhost:27017')
-db = db_client.test
-json_data = db.red_social.find()
-result = ParseFromJsonToGraph(json_data, 'id', 'friends')
 
-nx.draw(result)
-plt.show()
+def NxToMongoJSON(graph, filename):
+    file = open(filename, "a")
+    with open(filename, 'w') as file: 
+        for node in graph.nodes:
+            person = {'id':node}
+            friends = [f for f in graph.neighbors(node)]
+            person['friends'] = friends
+            person_json = json.dumps(person)
+            file.write(person_json + '\n') 
